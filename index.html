@@ -3,6 +3,7 @@
 <head lang="en">
   <title>Covid19</title>
   <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/vue@2"></script>
   <link rel="stylesheet" href="./styles.css">
@@ -23,11 +24,8 @@
     <thead>
       <tr>
         <th>Country</th>
-        <th class="num highlighted">Total</th>
-        <th class="num">Recovered</th>
-        <th class="num">Active</th>
+        <th class="num">Total</th>
         <th class="num highlighted">New cases</th>
-        <th class="num">Deaths</th>
         <th class="num">New deaths</th>
       </tr>
     </thead>
@@ -38,11 +36,8 @@
             {{ c.country }}
           </a>
         </td>
-        <td class="num highlighted">{{ c.cases | num }}</td>
-        <td class="num">{{ c.recovered | num }}</td>
-        <td class="num">{{ c.active | num }}</td>
+        <td class="num">{{ c.cases | num }}</td>
         <td class="num highlighted">{{ c.todayCases | num }}</td>
-        <td class="num">{{ c.deaths | num }}</td>
         <td class="num">{{ c.todayDeaths | num }}</td>
       </tr>
     </tbody>
@@ -59,7 +54,7 @@
     data() {
       return {
         loading: true,
-        error: true,
+        error: false,
         config: {
           countries: [
             { code: 'de', link: 'germany' },
