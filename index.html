@@ -1,0 +1,110 @@
+<html>
+
+<head lang="en">
+  <title>Covid19</title>
+  <meta charset="utf-8" />
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/vue@2"></script>
+  <link rel="stylesheet" href="./styles.css">
+</head>
+
+<div id="app">
+  <h1>Covid dashboard</h1>
+  <h2>Data for yesterday, {{ date }}</h2>
+
+  <div class="loading" v-if="loading">
+    <p>Loading</p>
+    <div class="lds-dual-ring"></div>
+  </div>
+
+  <div v-if="error">error loading data</div>
+
+  <table v-if="!loading" cellpadding="0" cellspacing="0">
+    <thead>
+      <tr>
+        <th>Country</th>
+        <th class="num highlighted">Total</th>
+        <th class="num">Recovered</th>
+        <th class="num">Active</th>
+        <th class="num highlighted">New cases</th>
+        <th class="num">Deaths</th>
+        <th class="num">New deaths</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr v-for="(c, k) in countries" :key="k">
+        <td>
+          <a :href="link(config.countries[k].link)">
+            {{ c.country }}
+          </a>
+        </td>
+        <td class="num highlighted">{{ c.cases | num }}</td>
+        <td class="num">{{ c.recovered | num }}</td>
+        <td class="num">{{ c.active | num }}</td>
+        <td class="num highlighted">{{ c.todayCases | num }}</td>
+        <td class="num">{{ c.deaths | num }}</td>
+        <td class="num">{{ c.todayDeaths | num }}</td>
+      </tr>
+    </tbody>
+  </table>
+
+</div>
+<script>
+  Vue.filter("num", function (value) {
+    return Intl.NumberFormat('de-DE').format(value)
+  })
+
+  var app = new Vue({
+    el: '#app',
+    data() {
+      return {
+        loading: true,
+        error: true,
+        config: {
+          countries: [
+            { code: 'de', link: 'germany' },
+            { code: 'pt', link: 'portugal' },
+            { code: 'is', link: 'iceland' },
+            { code: 'ca', link: 'canada' },
+            { code: 'us', link: 'usa' },
+          ]
+        },
+        countries: []
+      }
+    },
+    computed: {
+      date: function () {
+        var date = new Date()
+        date.setDate(date.getDate() - 1)
+        return date.toLocaleDateString()
+      }
+    },
+    methods: {
+      link(c) {
+        return `https://www.worldometers.info/coronavirus/country/${c}/`
+      }
+    },
+    created() {
+      const url = `https://disease.sh/v3/covid-19/countries/`
+        + this.config.countries.map(c => c.code).join(`,`)
+        + `?yesterday=true`
+
+      axios({
+        method: `get`,
+        url: url
+      })
+        .then((response) => {
+          this.countries = response.data
+        })
+        .catch(() => {
+          this.error = true
+        })
+        .finally(() => {
+          this.loading = false
+
+        })
+    }
+  })
+</script>
+
+</html>
