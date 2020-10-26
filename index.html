@@ -11,11 +11,25 @@
 
 <div id="app">
   <h1>Covid dashboard</h1>
-  <h2>Data for yesterday, {{ date }}</h2>
+  <p>Data for yesterday, {{ date }}</p>
 
+  <h3>Berlin</h3>
+  <p v-if="berlin.new.loading && berlin.total.loading">
+    Loading...
+  </p>
+  <p v-else>
+    <span v-if="!berlin.total.loading">
+      {{ berlin.total.value | num }} total cases
+      <br />
+    </span>
+    <span v-if="!berlin.new.loading">
+      {{ berlin.new.value | num }} new cases
+    </span>
+  </p>
+
+  <h3>World</h3>
   <div class="loading" v-if="loading">
-    <p>Loading</p>
-    <div class="lds-dual-ring"></div>
+    <p>Loading...</p>
   </div>
 
   <div v-if="error">error loading data</div>
@@ -53,6 +67,18 @@
     el: '#app',
     data() {
       return {
+        berlin: {
+          new: {
+            loading: true,
+            error: false,
+            value: null,
+          },
+          total: {
+            loading: true,
+            error: false,
+            value: null,
+          },
+        },
         loading: true,
         error: false,
         config: {
@@ -80,13 +106,47 @@
       }
     },
     created() {
-      const url = `https://disease.sh/v3/covid-19/countries/`
+      // Berlin data: total cases
+      const berlinTotalUrl = `https://services7.arcgis.com/mOBPykOjAyBO2ZKk/arcgis/rest/services/RKI_Landkreisdaten/FeatureServer/0/query?f=json&where=BL%3D%27Berlin%27&returnGeometry=false&spatialRel=esriSpatialRelIntersects&outFields=*&outStatistics=%5B%7B%22statisticType%22%3A%22sum%22%2C%22onStatisticField%22%3A%22cases%22%2C%22outStatisticFieldName%22%3A%22value%22%7D%5D&outSR=102100&resultType=standard&cacheHint=true`
+      axios({
+        method: `get`,
+        url: berlinTotalUrl
+      })
+        .then((response) => {
+          this.berlin.total.value = response.data.features[0].attributes.value
+        })
+        .catch((e) => {
+          this.berlin.total.error = true
+        })
+        .finally(() => {
+          this.berlin.total.loading = false
+        })
+
+      // Berlin data: new cases
+      const berlinNewUrl = `https://services7.arcgis.com/mOBPykOjAyBO2ZKk/arcgis/rest/services/RKI_COVID19/FeatureServer/0/query?f=json&where=(NeuerFall%20IN(1%2C%20-1))%20AND%20(Bundesland%3D%27Berlin%27)&returnGeometry=false&spatialRel=esriSpatialRelIntersects&outFields=*&outStatistics=%5B%7B%22statisticType%22%3A%22sum%22%2C%22onStatisticField%22%3A%22AnzahlFall%22%2C%22outStatisticFieldName%22%3A%22value%22%7D%5D&resultType=standard&cacheHint=true
+`
+      axios({
+        method: `get`,
+        url: berlinNewUrl
+      })
+        .then((response) => {
+          this.berlin.new.value = response.data.features[0].attributes.value
+        })
+        .catch((e) => {
+          this.berlin.new.error = true
+        })
+        .finally(() => {
+          this.berlin.new.loading = false
+        })
+
+      // World data
+      const worldUrl = `https://disease.sh/v3/covid-19/countries/`
         + this.config.countries.map(c => c.code).join(`,`)
         + `?yesterday=true`
 
       axios({
         method: `get`,
-        url: url
+        url: worldUrl
       })
         .then((response) => {
           this.countries = response.data
