@@ -43,6 +43,7 @@
         <th>Country</th>
         <th class="num">Total</th>
         <th class="num highlighted">New cases</th>
+        <th class="num">Active cases</th>
         <th class="num">New deaths</th>
       </tr>
     </thead>
@@ -55,6 +56,7 @@
         </td>
         <td class="num">{{ c.cases | num }}</td>
         <td class="num highlighted">{{ c.todayCases | num }}</td>
+        <td class="num">{{ c.active | num }} </td>
         <td class="num">{{ c.todayDeaths | num }}</td>
       </tr>
     </tbody>
